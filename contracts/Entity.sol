@@ -72,8 +72,8 @@ contract Entity is Ownable {
 
 	// Users trade, but entities approve the trade
 	function approveTrade(
-			address _sender,
-			address _recipient,
+			address _from,
+			address _to,
 			uint _amount) isOwner() public returns(bool) {
 		// Request from contract
 		return ApprovalContract(approvalContract).approveTrade(_amount);

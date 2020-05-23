@@ -15,14 +15,6 @@ contract Token is Ownable {
 	/**
 	 * Each water entitlement holder is a trader
 	 */
-	struct Trader {
-		address trader;
-		uint entitlement;
-		uint allocation;
-		uint storedWater;
-		bool active;
-		address authority;
-	}
 
 	struct EntityStruct {
 		address entityContract;
@@ -33,15 +25,6 @@ contract Token is Ownable {
 		address[] children;
 		bool added;
 	}
-
-	modifier activeTrader(address _addr) {
-		require(traders[_addr].active, "Not an active trader address");
-		_;
-	}
-
-	// Storing traders as array and mapping for easier access and traversal
-	mapping(address => Trader) private traders;
-	address[] private traderAddresses;
 
 	// Storing entities as array and mapping for easier access and traversal
 	address private rootEntity;
@@ -140,16 +123,23 @@ contract Token is Ownable {
 
 	function addTrader(
 			address _addr,
+			address _authority,
 			uint _storedWater) isOwner() public {
+		require(rootEntity != address(0),
+				"No root entity, create before adding");
+		require(entities[_authority].added &&
+				Entity(_authority).isActive(),
+				"Parent entity not active");
+		require(!traders[_addr].active, "Trader already exists");
+
 		traderAddresses.push(_addr);
-		traders[_addr] = Trader(
-			_addr,
-			0,
-			0,
-			_storedWater,
-			true,
-			address(0)
-		);
+
+		Trader memory trader;
+		trader.trader = _addr;
+		trader.authority = _authority;
+		trader.storedWater = _storedWater;
+		trader.active = true;
+		traders[_addr] = trader;
 	}
 
 	function getTraderLength() public view returns(uint) {
@@ -158,6 +148,56 @@ contract Token is Ownable {
 
 	function getTrader(address _addr) activeTrader(_addr) public view returns(Trader memory) {
 		return traders[_addr];
+	}
+
+	function validTrade(address _from,
+			address _to,
+			uint _amount) private returns(bool) {
+
+		address cur = _to;
+		while(cur != rootEntity) {
+			require(Entity(cur).approveTrade(_from, _to, _amount), "Trade denied on 'to' branch");
+			cur == entities[cur].parentAuthority;
+		}
+
+		cur = _from;
+		while(cur != rootEntity) {
+			require(Entity(cur).approveTrade(_from, _to, _amount), "Trade denied on 'from' branch");
+			cur == entities[cur].parentAuthority;
+		}
+		return true;
+	}
+
+	// Storing traders as array and mapping for easier access and traversal
+	mapping(address => Trader) private traders;
+	address[] private traderAddresses;
+
+	/**
+	 * Each water entitlement holder is a trader
+	 */
+	struct Trader {
+		address trader;
+		uint entitlement;
+		uint allocation;
+		uint storedWater;
+		bool active;
+		address authority;
+	}
+
+	modifier activeTrader(address _addr) {
+		require(traders[_addr].active, "Not an active trader address");
+		_;
+	}
+
+	// TODO: enum for the trade type: deliver, allocaiton, entitlement
+	function trade(
+			address _from,
+			address _to,
+			uint _amount) public {
+		// traverse up the tree during both from and to and ask to trade
+		require(validTrade(_from, _to, _amount), "Trade not approved");
+
+		// TODO: if approved, trade
 	}
 
 	// -------- END TOKEN TRADE FUNCTIONS -------- //
