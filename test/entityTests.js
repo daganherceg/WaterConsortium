@@ -81,6 +81,7 @@ contract('Entity', function([owner, newOwner, ...accounts]) {
 
     describe('Trading under new ownership', () => {
     	it('trade denied - previous owner', async () => {
+            // TODO: ownership
     		await truffleAssert.reverts( entity.approveTrade(accounts[1], accounts[2], 22, { from: owner }) );
     	});
 

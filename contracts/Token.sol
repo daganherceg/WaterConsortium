@@ -153,18 +153,29 @@ contract Token is Ownable {
 	function validTrade(address _from,
 			address _to,
 			uint _amount) private returns(bool) {
+		address fromAuthority = traders[_from].authority;
+		address toAuthority = traders[_to].authority;
 
-		address cur = _to;
-		while(cur != rootEntity) {
-			require(Entity(cur).approveTrade(_from, _to, _amount), "Trade denied on 'to' branch");
-			cur == entities[cur].parentAuthority;
+		// LOCAL
+		if (fromAuthority == toAuthority) {
+			require(Entity(fromAuthority)
+					.approveTrade(_from, _to, _amount),
+					"Local entity denied trade");
+		} else {
+		// FOREIGN
+			uint i = 0;
+			while (entities[fromAuthority]
+					.parentAuthority != rootEntity)
+			{
+				require(Entity(fromAuthority)
+						.approveTrade(_from, _to, _amount),
+						"Foreign entity denied trade");
+				fromAuthority = entities[fromAuthority].parentAuthority;
+			}
 		}
-
-		cur = _from;
-		while(cur != rootEntity) {
-			require(Entity(cur).approveTrade(_from, _to, _amount), "Trade denied on 'from' branch");
-			cur == entities[cur].parentAuthority;
-		}
+		require(Entity(rootEntity).
+						approveTrade(_from, _to, _amount),
+						"Trade denied on 'from' branch");
 		return true;
 	}
 
@@ -189,15 +200,23 @@ contract Token is Ownable {
 		_;
 	}
 
+	function getTraderAuthority(address _addr) public view returns(address) {
+		return traders[_addr].authority;
+	}
+
+	function getEntitiesParentAuthority(
+			address _addr)
+	public view returns(address) {
+		return entities[_addr].parentAuthority;
+	}
+
 	// TODO: enum for the trade type: deliver, allocaiton, entitlement
 	function trade(
 			address _from,
 			address _to,
 			uint _amount) public {
-		// traverse up the tree during both from and to and ask to trade
-		require(validTrade(_from, _to, _amount), "Trade not approved");
-
-		// TODO: if approved, trade
+		validTrade(_from, _to, _amount);
+		// TODO: transfer water
 	}
 
 	// -------- END TOKEN TRADE FUNCTIONS -------- //

@@ -74,8 +74,8 @@ contract Entity is Ownable {
 	function approveTrade(
 			address _from,
 			address _to,
-			uint _amount) isOwner() public returns(bool) {
-		// Request from contract
+			uint _amount) public returns(bool) {
+		require(activeContract(), "No active approval contract");
 		return ApprovalContract(approvalContract).approveTrade(_amount);
 	}
 
