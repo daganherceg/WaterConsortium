@@ -3,7 +3,7 @@ const ApprovalContract = artifacts.require('ApprovalContract');
 const ReplacementApprovalContract = artifacts.require('ReplacementApprovalContract');
 const truffleAssert = require('truffle-assertions');
 
-contract('ApprovalContract', function([owner, newOwner, ...accounts]) {
+contract('ApprovalContract', function([owner, newOwner]) {
 	let entity;
 	let contract;
 	let updatedContract;

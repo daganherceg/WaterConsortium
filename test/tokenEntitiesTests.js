@@ -2,7 +2,7 @@ const Token = artifacts.require('Token');
 const Entity = artifacts.require('Entity');
 const truffleAssert = require('truffle-assertions');
 
-contract('Token-Entities', function([tokenOwner, MDBA, NSW, VIC, ACT, accounts]) {
+contract('Token-Entities', function([tokenOwner, MDBA, NSW, VIC, ACT]) {
     let token;
     let root;
     describe('Entity Managment', () => {

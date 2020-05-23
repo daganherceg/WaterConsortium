@@ -4,11 +4,12 @@ const truffleAssert = require('truffle-assertions');
 
 contract('Token', function([owner, newOwner, ...accounts]) {
     let contract;
+    let entity;
     describe('Testing Token setup', () => {
         before(async () => {
-            contract = await Token.new({
-                from: owner,
-            });
+            contract = await Token.new();
+            entity = await Entity.new(owner, "Entity");
+            await contract.addRootEntity(entity.address);
         });
         it("empty token", async () => {
             const allocaiton = await contract.getTotalSupply.call();
@@ -60,9 +61,9 @@ contract('Token', function([owner, newOwner, ...accounts]) {
 
     describe('Testing Trader function', () => {
         before(async () => {
-            contract = await Token.new({
-                from: owner,
-            });
+            contract = await Token.new();
+            entity = await Entity.new(owner, "Entity");
+            await contract.addRootEntity(entity.address);
         });
 
         it("fresh Token", async () => {
@@ -73,30 +74,47 @@ contract('Token', function([owner, newOwner, ...accounts]) {
         });
 
         it("non owner failed to add traded", async () => {
-            await truffleAssert.reverts(contract.addTrader(accounts[0], 4, {
+            await truffleAssert.reverts(contract.addTrader(
+                    accounts[0],
+                    entity.address,
+            4, {
                 from: accounts[3]
             }));
         });
 
         it("trader added", async () => {
-            await contract.addTrader(accounts[0], 4);
+            await contract.addTrader(
+                    accounts[0],
+                    entity.address,
+            4);
             const traderLen = await contract.getTraderLength.call();
             assert.equal(traderLen.toString(), "1");
         });
 
-        it("confirmed accurate traded added", async () => {
+        it("cannot double add trader", async () => {
+            await truffleAssert.reverts( contract.addTrader(
+                    accounts[0],
+                    entity.address,
+            4));
+        });
+
+        it("confirmed accurate trader added", async () => {
             const trader = await contract.getTrader.call(accounts[0]);
             assert.equal(trader.trader, accounts[0]);
             assert.equal(trader.entitlement, 0);
             assert.equal(trader.allocation, 0);
             assert.equal(trader.storedWater, 4);
             assert.equal(trader.active, true);
-            assert.equal(trader.authority.toString(), "0x0000000000000000000000000000000000000000")
-        })
+            assert.equal(trader.authority.toString(),
+                    entity.address);
+        });
 
         it("confirm multiple traders", async () => {
             for (let i = 1; i < accounts.length; i++) {
-                await contract.addTrader(accounts[i], i);
+                await contract.addTrader(
+                    accounts[i],
+                    entity.address,
+                    i);
             }
             const traderLen = await contract.getTraderLength.call();
             assert.equal(traderLen.toString(), "8");
