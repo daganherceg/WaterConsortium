@@ -13,13 +13,13 @@ contract ApprovalContract {
     modifier isOwner() {
         require(
             msg.sender == owner,
-            'You are not authorsed to action this contract'
+            "You are not authorsed to action this contract"
         );
         _;
     }
 
     modifier activeContract() {
-        require(isActive(), 'Contract has been retired!');
+        require(isActive(), "Contract has been retired!");
         _;
     }
 

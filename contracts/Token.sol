@@ -1,8 +1,8 @@
 pragma solidity ^0.6.2;
 pragma experimental ABIEncoderV2;
 
-import './Ownable.sol';
-import './Entity.sol';
+import "./Ownable.sol";
+import "./Entity.sol";
 
 
 /**
@@ -44,7 +44,7 @@ contract Token is Ownable {
     modifier activeTrader(address _addr) {
         require(
             traders[_addr].active,
-            'Not an active trader address'
+            "Not an active trader address"
         );
         _;
     }
@@ -122,11 +122,11 @@ contract Token is Ownable {
     function addRootEntity(address _entityContract) public isOwner() {
         require(
             rootEntity == address(0),
-            'Root Entity already assigned'
+            "Root Entity already assigned"
         );
         require(
             !entities[_entityContract].added,
-            'Entity already exists'
+            "Entity already exists"
         );
         rootEntity = _entityContract;
         entityAddresses.push(_entityContract);
@@ -147,19 +147,19 @@ contract Token is Ownable {
     {
         require(
             rootEntity != address(0),
-            'No root entity, create before adding'
+            "No root entity, create before adding"
         );
         require(
             !entities[_entityContract].added,
-            'Entity already exists'
+            "Entity already exists"
         );
         require(
             entities[_parent].added && Entity(_parent).isActive(),
-            'Parent entity not active'
+            "Parent entity not active"
         );
         require(
             Entity(_parent).askToAdd(_entityContract),
-            'Parent authority denied request'
+            "Parent authority denied request"
         );
 
         entityAddresses.push(_entityContract);
@@ -190,11 +190,10 @@ contract Token is Ownable {
                     _to,
                     _amount
                 ),
-                'Local entity denied trade'
+                "Local entity denied trade"
             );
         } else {
             // FOREIGN
-            uint256 i = 0;
             while (
                 entities[fromAuthority].parentAuthority != rootEntity
             ) {
@@ -204,7 +203,7 @@ contract Token is Ownable {
                         _to,
                         _amount
                     ),
-                    'Foreign entity denied trade'
+                    "Foreign entity denied trade"
                 );
                 fromAuthority = entities[fromAuthority]
                     .parentAuthority;
@@ -224,14 +223,14 @@ contract Token is Ownable {
     ) public isOwner() {
         require(
             rootEntity != address(0),
-            'No root entity, create before adding'
+            "No root entity, create before adding"
         );
         require(
             entities[_authority].added &&
                 Entity(_authority).isActive(),
-            'Parent entity not active'
+            "Parent entity not active"
         );
-        require(!traders[_addr].active, 'Trader already exists');
+        require(!traders[_addr].active, "Trader already exists");
 
         traderAddresses.push(_addr);
 
@@ -249,7 +248,7 @@ contract Token is Ownable {
         address _to,
         uint256 _amount
     ) public {
-        require(validTrade(_from, _to, _amount), 'Invalid trade');
+        require(validTrade(_from, _to, _amount), "Invalid trade");
         // TODO: transfer water
     }
 

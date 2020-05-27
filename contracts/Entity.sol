@@ -1,8 +1,8 @@
 pragma solidity ^0.6.2;
 pragma experimental ABIEncoderV2;
 
-import './Ownable.sol';
-import './ApprovalContract.sol';
+import "./Ownable.sol";
+import "./ApprovalContract.sol";
 
 
 /**
@@ -57,7 +57,7 @@ contract Entity is Ownable {
     function setApprovalContract(address _addr) public isOwner() {
         require(
             !assignedContract,
-            'Contract active, use changeApprovalContract()'
+            "Contract active, use changeApprovalContract()"
         );
         approvalContract = _addr;
         assignedContract = true;
@@ -77,7 +77,7 @@ contract Entity is Ownable {
         address _to,
         uint256 _amount
     ) public returns (bool) {
-        require(activeContract(), 'No active approval contract');
+        require(activeContract(), "No active approval contract");
         return
             ApprovalContract(approvalContract).approveTrade(_amount);
     }
