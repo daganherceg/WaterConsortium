@@ -1,223 +1,257 @@
 pragma solidity ^0.6.2;
 pragma experimental ABIEncoderV2;
 
-import "./Ownable.sol";
-import "./Entity.sol";
+import './Ownable.sol';
+import './Entity.sol';
+
 
 /**
  * This Token represnets an
  */
 contract Token is Ownable {
-	uint8 private decimals = 18;
-	uint private totalSupply; // allocations
-	uint private totalEntitlements; // entitlements
+    uint8 private decimals = 18;
+    uint256 private totalSupply; // allocations
+    uint256 private totalEntitlements; // entitlements
 
-	/**
-	 * Each water entitlement holder is a trader
-	 */
+    struct EntityProxyStruct {
+        address entityContract;
+        uint256 entitlement;
+        uint256 allocation;
+        uint256 storedWater;
+        address parentAuthority;
+        address[] children;
+        bool added;
+    }
 
-	struct EntityStruct {
-		address entityContract;
-		uint entitlement;
-		uint allocation;
-		uint storedWater;
-		address parentAuthority;
-		address[] children;
-		bool added;
-	}
+    struct Trader {
+        address trader;
+        uint256 entitlement;
+        uint256 allocation;
+        uint256 storedWater;
+        bool active;
+        address authority;
+    }
 
-	// Storing entities as array and mapping for easier access and traversal
-	address private rootEntity;
-	mapping(address => EntityStruct) private entities;
-	address[] private entityAddresses;
+    // Storing entities as array and mapping for easier access and traversal
+    address private rootEntity;
+    mapping(address => EntityProxyStruct) private entities;
+    address[] private entityAddresses;
 
-	// ---------- TOKEN ENTITY FUNCTIONS ---------- //
+    // Storing traders as array and mapping for easier access and traversal
+    mapping(address => Trader) private traders;
+    address[] private traderAddresses;
 
-	// ----------------- GETTERS ----------------- //
+    modifier activeTrader(address _addr) {
+        require(
+            traders[_addr].active,
+            'Not an active trader address'
+        );
+        _;
+    }
 
-	function getEntitiesLength() public view returns(uint) {
-		return entityAddresses.length;
-	}
+    // ----------------- GETTERS ----------------- //
+    function getTotalSupply() public view returns (uint256) {
+        return totalSupply;
+    }
 
-	function getEntity(address _entityContract) public view returns (EntityStruct memory) {
-		return entities[_entityContract];
-	}
+    function getTotalEntitlements() public view returns (uint256) {
+        return totalEntitlements;
+    }
 
-	function getEntityAt(uint _index) public view returns(address) {
-		return entityAddresses[_index];
-	}
+    function getEntitiesLength() public view returns (uint256) {
+        return entityAddresses.length;
+    }
 
-	function getChildrenLength(address _address) public view returns(uint) {
-		return entities[_address].children.length;
-	}
+    function getEntity(address _entityContract)
+        public
+        view
+        returns (EntityProxyStruct memory)
+    {
+        return entities[_entityContract];
+    }
 
-	function getChildAt(address _address, uint _index) public view returns(address) {
-		return entities[_address].children[_index];
-	}
+    function getEntityAt(uint256 _index)
+        public
+        view
+        returns (address)
+    {
+        return entityAddresses[_index];
+    }
 
-	function getRootEntity() isOwner() public view returns(address) {
-		return rootEntity;
-	}
+    function getEntitiesParentAuthority(address _addr)
+        public
+        view
+        returns (address)
+    {
+        return entities[_addr].parentAuthority;
+    }
 
-	// --------------- END GETTERS ----------------- //
+    // Trader's parent enitity
+    function getTraderAuthority(address _addr)
+        public
+        view
+        returns (address)
+    {
+        return traders[_addr].authority;
+    }
 
+    function getChildrenLength(address _address)
+        public
+        view
+        returns (uint256)
+    {
+        return entities[_address].children.length;
+    }
 
-	// ---------- TOKEN ENTITY FUNCTIONS ---------- //
+    function getChildAt(address _address, uint256 _index)
+        public
+        view
+        returns (address)
+    {
+        return entities[_address].children[_index];
+    }
 
-	function addRootEntity(address _entityContract) isOwner() public {
-		require(rootEntity == address(0), "Root Entity already assigned");
-		require(!entities[_entityContract].added, "Entity already exists");
-		rootEntity = _entityContract;
-		entityAddresses.push(_entityContract);
+    function getRootEntity() public view isOwner() returns (address) {
+        return rootEntity;
+    }
 
-		EntityStruct memory entityStruct;
-		entityStruct.entityContract = _entityContract;
-		entityStruct.added = true;
+    // --------------- END GETTERS ----------------- //
 
-		entities[_entityContract] = entityStruct;
-	}
+    // ---------- TOKEN ENTITY FUNCTIONS ---------- //
 
-	/**
-	 * Entity created by calling the entity contract outside of this function
-	 * and adding to the structure by calling addEntity
-	 */
-	function addEntity(address _entityContract, address _parent) public {
-		require(rootEntity != address(0), "No root entity, create before adding");
-		require(!entities[_entityContract].added, "Entity already exists");
-		require(entities[_parent].added && Entity(_parent).isActive(), "Parent entity not active");
+    function addRootEntity(address _entityContract) public isOwner() {
+        require(
+            rootEntity == address(0),
+            'Root Entity already assigned'
+        );
+        require(
+            !entities[_entityContract].added,
+            'Entity already exists'
+        );
+        rootEntity = _entityContract;
+        entityAddresses.push(_entityContract);
 
-		// Ask parent to add
+        EntityProxyStruct memory entityStruct;
+        entityStruct.entityContract = _entityContract;
+        entityStruct.added = true;
 
-		// parentContract.askToAdd(rootEntity);
-		require(Entity(_parent).askToAdd(_entityContract), "Parent authority denied request");
+        entities[_entityContract] = entityStruct;
+    }
 
-		entityAddresses.push(_entityContract);
-		entities[_parent].children.push(_entityContract);
+    /**
+     * Entity created by calling the entity contract outside of this function
+     * and adding to the structure by calling addEntity
+     */
+    function addEntity(address _entityContract, address _parent)
+        public
+    {
+        require(
+            rootEntity != address(0),
+            'No root entity, create before adding'
+        );
+        require(
+            !entities[_entityContract].added,
+            'Entity already exists'
+        );
+        require(
+            entities[_parent].added && Entity(_parent).isActive(),
+            'Parent entity not active'
+        );
+        require(
+            Entity(_parent).askToAdd(_entityContract),
+            'Parent authority denied request'
+        );
 
-		EntityStruct memory entityStruct;
-		entityStruct.entityContract = _entityContract;
-		entityStruct.parentAuthority = _parent;
-		entityStruct.added = true;
-		entities[_entityContract] = entityStruct;
-	}
+        entityAddresses.push(_entityContract);
+        entities[_parent].children.push(_entityContract);
 
-	// -------- END TOKEN ENTITY FUNCTIONS -------- //
+        EntityProxyStruct memory entityStruct;
+        entityStruct.entityContract = _entityContract;
+        entityStruct.parentAuthority = _parent;
+        entityStruct.added = true;
+        entities[_entityContract] = entityStruct;
+    }
 
+    // ---------- TOKEN TRADER FUNCTIONS ---------- //
 
-	// -------- TOKEN MANAGMENT FUNCTIONS -------- //
+    function validTrade(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) private returns (bool) {
+        address fromAuthority = traders[_from].authority;
+        address toAuthority = traders[_to].authority;
 
-	/**
-	 * Get total allocations within the network
-	 */
-	function getTotalSupply() public view returns(uint) {
-		return totalSupply;
-	}
+        // LOCAL
+        if (fromAuthority == toAuthority) {
+            require(
+                Entity(fromAuthority).approveTrade(
+                    _from,
+                    _to,
+                    _amount
+                ),
+                'Local entity denied trade'
+            );
+        } else {
+            // FOREIGN
+            uint256 i = 0;
+            while (
+                entities[fromAuthority].parentAuthority != rootEntity
+            ) {
+                require(
+                    Entity(fromAuthority).approveTrade(
+                        _from,
+                        _to,
+                        _amount
+                    ),
+                    'Foreign entity denied trade'
+                );
+                fromAuthority = entities[fromAuthority]
+                    .parentAuthority;
+            }
+        }
+        require(
+            Entity(rootEntity).approveTrade(_from, _to, _amount),
+            "Trade denied on 'from' branch"
+        );
+        return true;
+    }
 
-	function getTotalEntitlements() public view returns(uint) {
-		return totalEntitlements;
-	}
+    function addTrader(
+        address _addr,
+        address _authority,
+        uint256 _storedWater
+    ) public isOwner() {
+        require(
+            rootEntity != address(0),
+            'No root entity, create before adding'
+        );
+        require(
+            entities[_authority].added &&
+                Entity(_authority).isActive(),
+            'Parent entity not active'
+        );
+        require(!traders[_addr].active, 'Trader already exists');
 
-	// ------ END TOKEN MANAGMENT FUNCTIONS ------ //
+        traderAddresses.push(_addr);
 
-	// ---------- TOKEN TRADE FUNCTIONS ---------- //
+        Trader memory trader;
+        trader.trader = _addr;
+        trader.authority = _authority;
+        trader.storedWater = _storedWater;
+        trader.active = true;
+        traders[_addr] = trader;
+    }
 
-	function addTrader(
-			address _addr,
-			address _authority,
-			uint _storedWater) isOwner() public {
-		require(rootEntity != address(0),
-				"No root entity, create before adding");
-		require(entities[_authority].added &&
-				Entity(_authority).isActive(),
-				"Parent entity not active");
-		require(!traders[_addr].active, "Trader already exists");
+    // TODO: enum for the trade type: deliver, allocaiton, entitlement
+    function trade(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) public {
+        require(validTrade(_from, _to, _amount), 'Invalid trade');
+        // TODO: transfer water
+    }
 
-		traderAddresses.push(_addr);
-
-		Trader memory trader;
-		trader.trader = _addr;
-		trader.authority = _authority;
-		trader.storedWater = _storedWater;
-		trader.active = true;
-		traders[_addr] = trader;
-	}
-
-	function getTraderLength() public view returns(uint) {
-		return traderAddresses.length;
-	}
-
-	function getTrader(address _addr) activeTrader(_addr) public view returns(Trader memory) {
-		return traders[_addr];
-	}
-
-	function validTrade(address _from,
-			address _to,
-			uint _amount) private returns(bool) {
-		address fromAuthority = traders[_from].authority;
-		address toAuthority = traders[_to].authority;
-
-		// LOCAL
-		if (fromAuthority == toAuthority) {
-			require(Entity(fromAuthority)
-					.approveTrade(_from, _to, _amount),
-					"Local entity denied trade");
-		} else {
-		// FOREIGN
-			uint i = 0;
-			while (entities[fromAuthority]
-					.parentAuthority != rootEntity)
-			{
-				require(Entity(fromAuthority)
-						.approveTrade(_from, _to, _amount),
-						"Foreign entity denied trade");
-				fromAuthority = entities[fromAuthority].parentAuthority;
-			}
-		}
-		require(Entity(rootEntity).
-						approveTrade(_from, _to, _amount),
-						"Trade denied on 'from' branch");
-		return true;
-	}
-
-	// Storing traders as array and mapping for easier access and traversal
-	mapping(address => Trader) private traders;
-	address[] private traderAddresses;
-
-	/**
-	 * Each water entitlement holder is a trader
-	 */
-	struct Trader {
-		address trader;
-		uint entitlement;
-		uint allocation;
-		uint storedWater;
-		bool active;
-		address authority;
-	}
-
-	modifier activeTrader(address _addr) {
-		require(traders[_addr].active, "Not an active trader address");
-		_;
-	}
-
-	function getTraderAuthority(address _addr) public view returns(address) {
-		return traders[_addr].authority;
-	}
-
-	function getEntitiesParentAuthority(
-			address _addr)
-	public view returns(address) {
-		return entities[_addr].parentAuthority;
-	}
-
-	// TODO: enum for the trade type: deliver, allocaiton, entitlement
-	function trade(
-			address _from,
-			address _to,
-			uint _amount) public {
-		validTrade(_from, _to, _amount);
-		// TODO: transfer water
-	}
-
-	// -------- END TOKEN TRADE FUNCTIONS -------- //
+    // -------- END TOKEN TRADE FUNCTIONS -------- //
 }

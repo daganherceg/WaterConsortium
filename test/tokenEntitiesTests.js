@@ -7,7 +7,7 @@ contract('Token-Entities', function([tokenOwner, MDBA, NSW, VIC, ACT]) {
     let root;
     describe('Entity Managment', () => {
         before(async () => {
-            root = await Entity.new(tokenOwner, 'MDBA');
+            root = await Entity.new('MDBA');
             token = await Token.new();
         });
 
@@ -49,9 +49,9 @@ contract('Token-Entities', function([tokenOwner, MDBA, NSW, VIC, ACT]) {
 
     describe('Entity Tree Structure', () => {
         before(async () => {
-            nsw = await Entity.new(tokenOwner, 'NSW', { from: NSW });
-            vic = await Entity.new(tokenOwner, 'VIC', { from: VIC });
-            act = await Entity.new(tokenOwner, 'ACT', { from: ACT });
+            nsw = await Entity.new('NSW', { from: NSW });
+            vic = await Entity.new('VIC', { from: VIC });
+            act = await Entity.new('ACT', { from: ACT });
         });
 
         it("adding child entity", async () => {

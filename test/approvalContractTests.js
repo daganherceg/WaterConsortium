@@ -10,7 +10,7 @@ contract('ApprovalContract', function([owner, newOwner]) {
 	let updatedContract2;
 	describe('Contract Init', () => {
 		before(async () => {
-			entity = await Entity.new(owner, "Entity");
+			entity = await Entity.new("Entity");
 			contract = await ApprovalContract.new(entity.address);
 			await entity.setApprovalContract(contract.address);
         });

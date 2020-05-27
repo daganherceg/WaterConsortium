@@ -12,7 +12,7 @@ contract('Entity', function([owner, newOwner, ...accounts]) {
 
 	describe('Entity init', () => {
         before(async () => {
-            entity = await Entity.new(owner, "Entity");
+            entity = await Entity.new("Entity");
             contract = await ApprovalContract.new(entity.address);
 			await entity.setApprovalContract(contract.address);
         });
@@ -80,11 +80,6 @@ contract('Entity', function([owner, newOwner, ...accounts]) {
     });
 
     describe('Trading under new ownership', () => {
-    	it('trade denied - previous owner', async () => {
-            // TODO: ownership
-    		await truffleAssert.reverts( entity.approveTrade(accounts[1], accounts[2], 22, { from: owner }) );
-    	});
-
     	it('trade approved - current owner', async () => {
     		assert.equal(true, await entity.approveTrade.call(accounts[1], accounts[2], 22, { from: newOwner }) );
     	});

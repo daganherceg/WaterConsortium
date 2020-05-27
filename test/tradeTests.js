@@ -16,10 +16,10 @@ contract('Trading', function([tokenOwner, MDBA, NSW, VIC, ACT, trader1, trader2,
     describe('Approval Setup', () => {
         before(async () => {
         	token = await Token.new();
-            root = await Entity.new(tokenOwner, 'MDBA');
-            nsw = await Entity.new(tokenOwner, 'NSW');
-            vic = await Entity.new(tokenOwner, 'VIC');
-            act = await Entity.new(tokenOwner, 'ACT');
+            root = await Entity.new('MDBA');
+            nsw = await Entity.new('NSW');
+            vic = await Entity.new('VIC');
+            act = await Entity.new('ACT');
 
             await token.addRootEntity(root.address);
             await token.addEntity(nsw.address, root.address);
@@ -43,12 +43,6 @@ contract('Trading', function([tokenOwner, MDBA, NSW, VIC, ACT, trader1, trader2,
         it("local traders", async () => {
         	assert.equal(await token.getTraderAuthority(trader1),
         			await token.getTraderAuthority(trader2));
-        	console.log(await token.getOwner());
-        	console.log(tokenOwner);
-        	console.log(MDBA);
-        	console.log(NSW);
-        	console.log(VIC);
-        	console.log(ACT);
         	await token.trade(trader1, trader2, 0);
         });
 

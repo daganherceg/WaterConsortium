@@ -8,7 +8,7 @@ contract('Token', function([owner, newOwner, ...accounts]) {
     describe('Testing Token setup', () => {
         before(async () => {
             contract = await Token.new();
-            entity = await Entity.new(owner, "Entity");
+            entity = await Entity.new("Entity");
             await contract.addRootEntity(entity.address);
         });
         it("empty token", async () => {
@@ -62,7 +62,7 @@ contract('Token', function([owner, newOwner, ...accounts]) {
     describe('Testing Trader function', () => {
         before(async () => {
             contract = await Token.new();
-            entity = await Entity.new(owner, "Entity");
+            entity = await Entity.new("Entity");
             await contract.addRootEntity(entity.address);
         });
 
