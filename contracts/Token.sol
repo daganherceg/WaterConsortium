@@ -95,6 +95,14 @@ contract Token is Ownable {
         return traders[_addr].authority;
     }
 
+    function getTraderLength() public view returns (uint) {
+        return traderAddresses.length;
+    }
+
+    function getTrader(address _addr) activeTrader(_addr) public view returns (Trader memory) {
+        return traders[_addr];
+    }
+
     function getChildrenLength(address _address)
         public
         view

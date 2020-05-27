@@ -1,6 +1,7 @@
 {
   "husky": {
     "hooks": {
+      "pre-commit": "truffle test",
        "pre-push": "npm run prettier:solidity"
     }
   },
