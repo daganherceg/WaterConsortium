@@ -1,10 +1,4 @@
 {
-  "husky": {
-    "hooks": {
-      "pre-commit": "truffle test && npm run solhint",
-      "pre-push": "npm run prettier:solidity"
-    }
-  },
   "name": "commoditymarket",
   "version": "1.0.0",
   "description": "",
@@ -18,7 +12,7 @@
   },
   "devDependencies": {
     "husky": "^4.2.5",
-    "prettier": "^2.0.5",
+    "prettier": "^1.19.1",
     "prettier-plugin-solidity": "^1.0.0-alpha.52",
     "solhint-plugin-prettier": "0.0.4"
   },
