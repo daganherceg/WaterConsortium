@@ -1,8 +1,8 @@
 {
   "husky": {
     "hooks": {
-      "pre-commit": "truffle test",
-       "pre-push": "npm run prettier:solidity"
+      "pre-commit": "truffle test && npm run solhint",
+      "pre-push": "npm run prettier:solidity"
     }
   },
   "name": "commoditymarket",

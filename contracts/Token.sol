@@ -62,7 +62,7 @@ contract Token is Ownable {
         return entityAddresses.length;
     }
 
-    function getEntity(address _entityContract)
+    function getEntity(address _entityContract) isOwner()
         public
         view
         returns (EntityProxyStruct memory)
@@ -70,7 +70,7 @@ contract Token is Ownable {
         return entities[_entityContract];
     }
 
-    function getEntityAt(uint256 _index)
+    function getEntityAt(uint256 _index) isOwner()
         public
         view
         returns (address)
@@ -78,7 +78,7 @@ contract Token is Ownable {
         return entityAddresses[_index];
     }
 
-    function getEntitiesParentAuthority(address _addr)
+    function getEntitiesParentAuthority(address _addr) isOwner()
         public
         view
         returns (address)
@@ -87,7 +87,7 @@ contract Token is Ownable {
     }
 
     // Trader's parent enitity
-    function getTraderAuthority(address _addr)
+    function getTraderAuthority(address _addr) isOwner()
         public
         view
         returns (address)
@@ -99,7 +99,7 @@ contract Token is Ownable {
         return traderAddresses.length;
     }
 
-    function getTrader(address _addr)
+    function getTrader(address _addr) isOwner()
         public
         view
         activeTrader(_addr)
@@ -108,7 +108,7 @@ contract Token is Ownable {
         return traders[_addr];
     }
 
-    function getChildrenLength(address _address)
+    function getChildrenLength(address _address) isOwner()
         public
         view
         returns (uint256)
@@ -116,7 +116,7 @@ contract Token is Ownable {
         return entities[_address].children.length;
     }
 
-    function getChildAt(address _address, uint256 _index)
+    function getChildAt(address _address, uint256 _index) isOwner()
         public
         view
         returns (address)
@@ -155,7 +155,7 @@ contract Token is Ownable {
      * Entity created by calling the entity contract outside of this function
      * and adding to the structure by calling addEntity
      */
-    function addEntity(address _entityContract, address _parent)
+    function addEntity(address _entityContract, address _parent) isOwner()
         public
     {
         require(
@@ -191,7 +191,7 @@ contract Token is Ownable {
         address _from,
         address _to,
         uint256 _amount
-    ) private returns (bool) {
+    ) isOwner() private returns (bool) {
         address fromAuthority = traders[_from].authority;
         address toAuthority = traders[_to].authority;
 
@@ -260,7 +260,7 @@ contract Token is Ownable {
         address _from,
         address _to,
         uint256 _amount
-    ) public {
+    ) isOwner() public {
         require(validTrade(_from, _to, _amount), "Invalid trade");
         // TODO: transfer water
     }
