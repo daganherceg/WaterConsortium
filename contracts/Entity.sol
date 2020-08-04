@@ -4,7 +4,14 @@ pragma experimental ABIEncoderV2;
 import "./Ownable.sol";
 import "./ApprovalContract.sol";
 
+contract EntityFactory {
+    constructor() public {
+    }
 
+    function newEntity(string memory _name) public returns (address newEntity) {
+        Entity newEntity = (new Entity(_name));
+    }
+}
 /**
  * Authorities operational contract
  */

@@ -1,6 +1,5 @@
 pragma solidity ^0.6.2;
 
-
 contract ApprovalContract {
     address private owner;
     bool private active;
